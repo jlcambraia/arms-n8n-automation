@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const ProposalList = ({ proposals }) => {
 	const [showModal, setShowModal] = useState(false);
 	const [selectedProposalId, setSelectedProposalId] = useState(null);
 	const [selectedChannel, setSelectedChannel] = useState('');
 	const [destino, setDestino] = useState('');
+	const [isLoading, setIsLoading] = useState(false);
 
 	const handleOpenModal = (id, canal) => {
 		setSelectedProposalId(id);
@@ -18,21 +19,19 @@ const ProposalList = ({ proposals }) => {
 	};
 
 	const handleSend = async () => {
+		setIsLoading(true);
 		try {
-			const response = await fetch(
-				'https://jlcambraia.app.n8n.cloud/webhook/enviar-resumo',
-				{
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({
-						_id: selectedProposalId,
-						canal: selectedChannel,
-						destino: destino,
-					}),
-				}
-			);
+			const response = await fetch(import.meta.env.VITE_ENVIAR_RESUMO, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					_id: selectedProposalId,
+					canal: selectedChannel,
+					destino: destino,
+				}),
+			});
 
 			if (!response.ok) {
 				throw new Error(`Erro na solicitação: ${response.statusText}`);
@@ -43,16 +42,38 @@ const ProposalList = ({ proposals }) => {
 		} catch (error) {
 			console.error('❌ Erro ao enviar proposta:', error.message);
 		} finally {
+			setIsLoading(false);
 			handleCloseModal();
 		}
+	};
+
+	const formatCurrency = (value, currency = 'BRL') => {
+		if (!value) return 'Não informado';
+		if (typeof value === 'string' && value.includes('R$')) return value;
+
+		const numValue = parseFloat(value);
+		if (isNaN(numValue)) return value;
+
+		return new Intl.NumberFormat('pt-BR', {
+			style: 'currency',
+			currency: currency === 'USD' ? 'USD' : 'BRL',
+		}).format(numValue);
 	};
 
 	return (
 		<section className='proposals-list'>
 			{proposals.length === 0 ? (
-				<p className='proposals-list__empty'>Nenhuma proposta disponível.</p>
+				<div className='proposals-list__empty'>
+					<div className='empty-state'>
+						<div className='empty-state__icon'>📋</div>
+						<h3 className='empty-state__title'>Nenhuma proposta disponível</h3>
+						<p className='empty-state__subtitle'>
+							As propostas aparecerão aqui quando estiverem disponíveis
+						</p>
+					</div>
+				</div>
 			) : (
-				<ul className='proposals-list__items'>
+				<div className='proposals-grid'>
 					{proposals.map(
 						({
 							_id,
@@ -61,87 +82,255 @@ const ProposalList = ({ proposals }) => {
 							contato,
 							dataRecebida,
 							moeda,
-							nivel_urgencia,
 							observacoes,
 							pontos_fortes,
 							prazo_pagamento,
 							prazo_entrega,
 							valor,
-							prazo,
 							produto_serviço,
 							resumo_inteligente,
-							status_proposta,
 						}) => {
 							const produtoServico = produto_serviço || 'Não informado';
 							const resumo = resumo_inteligente || 'Sem resumo disponível';
 							const id = _id;
 
 							return (
-								<li key={id} className='proposals-list__item'>
-									<h2 className='proposals-list__fornecedor'>
-										Fornecedor: {fornecedor || 'Fornecedor não informado'}
-									</h2>
+								<div key={id} className='proposal-card'>
+									<div className='proposal-card__header'>
+										<div className='proposal-card__title-section'>
+											<h2 className='proposal-card__fornecedor-title'>
+												Fornecedor:{' '}
+												<span className='proposal-card__fornecedor-name'>
+													{fornecedor || 'Fornecedor não informado'}
+												</span>
+											</h2>
+										</div>
+									</div>
 
-									<p className='proposals-list__field'>
-										<strong>Valor:</strong> {valor || 'Valor não informado'}
-									</p>
+									<div className='proposal-card__content'>
+										<div className='proposal-card__main-info'>
+											<div className='info-grid'>
+												<div className='info-item info-item--highlight'>
+													<span className='info-item__icon'>💰</span>
+													<div className='info-item__content'>
+														<span className='info-item__label'>Valor</span>
+														<span className='info-item__value'>
+															{formatCurrency(valor, moeda)}
+														</span>
+													</div>
+												</div>
 
-									<p className='proposals-list__field'>
-										<strong>Prazo:</strong> {prazo || 'Prazo não informado'}
-									</p>
+												<div className='info-item'>
+													<span className='info-item__icon'>📦</span>
+													<div className='info-item__content'>
+														<span className='info-item__label'>
+															Produto/Serviço
+														</span>
+														<span className='info-item__value info-item__value_service-products'>
+															{produtoServico}
+														</span>
+													</div>
+												</div>
 
-									<p className='proposals-list__field'>
-										<strong>Produto/Serviço:</strong> {produtoServico}
-									</p>
+												{categoria && (
+													<div className='info-item'>
+														<span className='info-item__icon'>🏷️</span>
+														<div className='info-item__content'>
+															<span className='info-item__label'>
+																Categoria
+															</span>
+															<span className='info-item__value'>
+																{categoria}
+															</span>
+														</div>
+													</div>
+												)}
 
-									<p className='proposals-list__resumo'>
-										<strong>Resumo:</strong> {resumo}
-									</p>
+												{prazo_entrega && (
+													<div className='info-item'>
+														<span className='info-item__icon'>🚚</span>
+														<div className='info-item__content'>
+															<span className='info-item__label'>
+																Prazo Entrega
+															</span>
+															<span className='info-item__value'>
+																{prazo_entrega}
+															</span>
+														</div>
+													</div>
+												)}
 
-									<div className='proposals-list__actions'>
+												{prazo_pagamento && (
+													<div className='info-item'>
+														<span className='info-item__icon'>💳</span>
+														<div className='info-item__content'>
+															<span className='info-item__label'>
+																Prazo Pagamento
+															</span>
+															<span className='info-item__value info-item__value_payment'>
+																{prazo_pagamento}
+															</span>
+														</div>
+													</div>
+												)}
+
+												<div className='info-item'>
+													<span className='info-item__icon'>📞</span>
+													<div className='info-item__content'>
+														<span className='info-item__label'>Contatos</span>
+														<span className='info-item__value'>
+															<span className='info-item__label'>Nome:</span>{' '}
+															{contato.nome || 'Não informado'}
+														</span>
+														<span className='info-item__value'>
+															<span className='info-item__label'>E-mail:</span>{' '}
+															{contato.email || 'Não informado'}
+														</span>
+														<span className='info-item__value'>
+															<span className='info-item__label'>
+																WhatsApp:
+															</span>{' '}
+															{contato.whatsapp || 'Não informado'}
+														</span>
+														<span className='info-item__value'>
+															<span className='info-item__label'>
+																Telefone:
+															</span>{' '}
+															{contato.telefone || 'Não informado'}
+														</span>
+													</div>
+												</div>
+
+												{dataRecebida && (
+													<div className='info-item'>
+														<span className='info-item__icon'>📅</span>
+														<div className='info-item__content'>
+															<span className='info-item__label'>
+																Data da Proposta
+															</span>
+															<span className='info-item__value'>
+																{dataRecebida}
+															</span>
+														</div>
+													</div>
+												)}
+											</div>
+										</div>
+
+										{pontos_fortes && (
+											<div className='proposal-card__strengths'>
+												<h4 className='strengths__title'>✨ Pontos Fortes</h4>
+												<p className='strengths__content strengths__content_fix-height'>
+													{pontos_fortes}
+												</p>
+											</div>
+										)}
+
+										<div className='proposal-card__summary'>
+											<h4 className='summary__title'>📝 Resumo Inteligente</h4>
+											<p className='summary__content summary__content_fix-height'>
+												{resumo}
+											</p>
+										</div>
+
+										{observacoes ? (
+											<div className='proposal-card__observations'>
+												<h4 className='observations__title'>💭 Observações</h4>
+												<p className='observations__content observations__content_fix-height'>
+													{observacoes}
+												</p>
+											</div>
+										) : (
+											<div className='proposal-card__observations'>
+												<h4 className='observations__title'>💭 Observações</h4>
+												<p className='observations__content observations__content_fix-height'>
+													Sem observações relevantes
+												</p>
+											</div>
+										)}
+									</div>
+
+									<div className='proposal-card__actions'>
 										<button
-											className='proposals-list__btn proposals-list__btn--email'
+											className='action-btn action-btn--email'
 											onClick={() => handleOpenModal(id, 'email')}
 										>
-											Enviar por E-mail
+											E-mail
 										</button>
 										<button
-											className='proposals-list__btn proposals-list__btn--whatsapp'
+											className='action-btn action-btn--whatsapp'
 											onClick={() => handleOpenModal(id, 'whatsapp')}
 										>
-											Enviar por WhatsApp
+											WhatsApp
 										</button>
 										<button
-											className='proposals-list__btn proposals-list__btn--discord'
+											className='action-btn action-btn--discord'
 											onClick={() => handleOpenModal(id, 'discord')}
 										>
-											Enviar por Discord
+											Discord
 										</button>
 									</div>
-								</li>
+								</div>
 							);
 						}
 					)}
-				</ul>
+				</div>
 			)}
 
 			{/* Modal */}
 			{showModal && (
 				<div className='modal'>
+					<div className='modal__overlay' onClick={handleCloseModal}></div>
 					<div className='modal__content'>
-						<h3>
-							Informe o destino para enviar via{' '}
-							<strong>{selectedChannel.toUpperCase()}</strong>
-						</h3>
-						<input
-							type='text'
-							placeholder='Digite o e-mail, número ou @usuário'
-							value={destino}
-							onChange={(e) => setDestino(e.target.value)}
-						/>
+						<div className='modal__header'>
+							<h3 className='modal__title'>
+								Enviar via {selectedChannel.toUpperCase()}
+							</h3>
+							<button className='modal__close' onClick={handleCloseModal}>
+								✕
+							</button>
+						</div>
+						<div className='modal__body'>
+							<div className='input-group'>
+								<label className='input-group__label'>
+									{selectedChannel === 'email'
+										? 'E-mail de destino'
+										: selectedChannel === 'whatsapp'
+										? 'Número do WhatsApp'
+										: 'Usuário do Discord'}
+								</label>
+								<input
+									type='text'
+									className='input-group__input'
+									placeholder={
+										selectedChannel === 'email'
+											? 'exemplo@email.com'
+											: selectedChannel === 'whatsapp'
+											? '1199999999'
+											: '@usuario'
+									}
+									value={destino}
+									onChange={(e) => setDestino(e.target.value)}
+								/>
+							</div>
+						</div>
 						<div className='modal__actions'>
-							<button onClick={handleSend}>Enviar</button>
-							<button onClick={handleCloseModal}>Cancelar</button>
+							<button
+								className={
+									isLoading
+										? 'modal-btn modal-btn--primary_loading'
+										: 'modal-btn modal-btn modal-btn--primary'
+								}
+								onClick={handleSend}
+							>
+								{isLoading ? 'Enviando...' : 'Enviar'}
+							</button>
+							<button
+								className='modal-btn modal-btn--secondary'
+								onClick={handleCloseModal}
+							>
+								Cancelar
+							</button>
 						</div>
 					</div>
 				</div>
