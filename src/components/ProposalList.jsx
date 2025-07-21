@@ -60,6 +60,11 @@ const ProposalList = ({ proposals }) => {
 		}).format(numValue);
 	};
 
+	const capitalizeFirstLetter = (category) => {
+		if (!category) return category;
+		return category.charAt(0).toUpperCase() + category.slice(1);
+	};
+
 	return (
 		<section className='proposals-list'>
 			{proposals.length === 0 ? (
@@ -97,19 +102,35 @@ const ProposalList = ({ proposals }) => {
 							return (
 								<div key={id} className='proposal-card'>
 									<div className='proposal-card__header'>
-										<div className='proposal-card__title-section'>
-											<h2 className='proposal-card__fornecedor-title'>
-												Fornecedor:{' '}
-												<span className='proposal-card__fornecedor-name'>
-													{fornecedor || 'Fornecedor não informado'}
-												</span>
-											</h2>
-										</div>
+										{categoria && (
+											<div className='info-item'>
+												<div className='proposal-card__title-section'>
+													<span className='proposal-card__category-title'>
+														Categoria:
+													</span>
+													<span className='proposal-card__category-name'>
+														{capitalizeFirstLetter(categoria)}
+													</span>
+												</div>
+											</div>
+										)}
 									</div>
 
 									<div className='proposal-card__content'>
 										<div className='proposal-card__main-info'>
 											<div className='info-grid'>
+												<div className='info-item'>
+													<span className='info-item__icon'>🧰</span>
+													<div className='info-item__content'>
+														<span className='info-item__label'>
+															Fornecedor:{' '}
+															<span className='info-item__value'>
+																{fornecedor || 'Fornecedor não informado'}
+															</span>
+														</span>
+													</div>
+												</div>
+
 												<div className='info-item info-item--highlight'>
 													<span className='info-item__icon'>💰</span>
 													<div className='info-item__content'>
@@ -131,20 +152,6 @@ const ProposalList = ({ proposals }) => {
 														</span>
 													</div>
 												</div>
-
-												{categoria && (
-													<div className='info-item'>
-														<span className='info-item__icon'>🏷️</span>
-														<div className='info-item__content'>
-															<span className='info-item__label'>
-																Categoria
-															</span>
-															<span className='info-item__value'>
-																{categoria}
-															</span>
-														</div>
-													</div>
-												)}
 
 												{prazo_entrega && (
 													<div className='info-item'>
@@ -281,56 +288,58 @@ const ProposalList = ({ proposals }) => {
 			{showModal && (
 				<div className='modal'>
 					<div className='modal__overlay' onClick={handleCloseModal}></div>
-					<div className='modal__content'>
-						<div className='modal__header'>
-							<h3 className='modal__title'>
-								Enviar via {selectedChannel.toUpperCase()}
-							</h3>
-							<button className='modal__close' onClick={handleCloseModal}>
-								✕
-							</button>
-						</div>
-						<div className='modal__body'>
-							<div className='input-group'>
-								<label className='input-group__label'>
-									{selectedChannel === 'email'
-										? 'E-mail de destino'
-										: selectedChannel === 'whatsapp'
-										? 'Número do WhatsApp'
-										: 'Usuário do Discord'}
-								</label>
-								<input
-									type='text'
-									className='input-group__input'
-									placeholder={
-										selectedChannel === 'email'
-											? 'exemplo@email.com'
-											: selectedChannel === 'whatsapp'
-											? '1199999999'
-											: '@usuario'
-									}
-									value={destino}
-									onChange={(e) => setDestino(e.target.value)}
-								/>
+					<div className='modal__container'>
+						<div className='modal__content'>
+							<div className='modal__header'>
+								<h3 className='modal__title'>
+									Enviar via {selectedChannel.toUpperCase()}
+								</h3>
+								<button className='modal__close' onClick={handleCloseModal}>
+									✕
+								</button>
 							</div>
-						</div>
-						<div className='modal__actions'>
-							<button
-								className={
-									isLoading
-										? 'modal-btn modal-btn--primary_loading'
-										: 'modal-btn modal-btn modal-btn--primary'
-								}
-								onClick={handleSend}
-							>
-								{isLoading ? 'Enviando...' : 'Enviar'}
-							</button>
-							<button
-								className='modal-btn modal-btn--secondary'
-								onClick={handleCloseModal}
-							>
-								Cancelar
-							</button>
+							<div className='modal__body'>
+								<div className='input-group'>
+									<label className='input-group__label'>
+										{selectedChannel === 'email'
+											? 'E-mail de destino'
+											: selectedChannel === 'whatsapp'
+											? 'Número do WhatsApp'
+											: 'Usuário do Discord'}
+									</label>
+									<input
+										type='text'
+										className='input-group__input'
+										placeholder={
+											selectedChannel === 'email'
+												? 'exemplo@email.com'
+												: selectedChannel === 'whatsapp'
+												? '1199999999'
+												: '@usuario'
+										}
+										value={destino}
+										onChange={(e) => setDestino(e.target.value)}
+									/>
+								</div>
+							</div>
+							<div className='modal__actions'>
+								<button
+									className={
+										isLoading
+											? 'modal-btn modal-btn--primary_loading'
+											: 'modal-btn modal-btn modal-btn--primary'
+									}
+									onClick={handleSend}
+								>
+									{isLoading ? 'Enviando...' : 'Enviar'}
+								</button>
+								<button
+									className='modal-btn modal-btn--secondary'
+									onClick={handleCloseModal}
+								>
+									Cancelar
+								</button>
+							</div>
 						</div>
 					</div>
 				</div>
