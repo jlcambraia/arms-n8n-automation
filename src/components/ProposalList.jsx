@@ -1,6 +1,74 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 
+// Componente Modal movido para fora - isso resolve o bug de re-renderização
+const Modal = ({
+	selectedChannel,
+	destino,
+	setDestino,
+	isLoading,
+	handleSend,
+	handleCloseModal,
+}) => (
+	<div className='modal'>
+		<div className='modal__overlay' onClick={handleCloseModal}></div>
+		<div className='modal__container'>
+			<div className='modal__content'>
+				<div className='modal__header'>
+					<h3 className='modal__title'>
+						Enviar via {selectedChannel.toUpperCase()}
+					</h3>
+					<button className='modal__close' onClick={handleCloseModal}>
+						✕
+					</button>
+				</div>
+				<div className='modal__body'>
+					<div className='input-group'>
+						<label className='input-group__label'>
+							{selectedChannel === 'email'
+								? 'E-mail de destino'
+								: selectedChannel === 'whatsapp'
+								? 'Número do WhatsApp'
+								: 'Usuário do Discord'}
+						</label>
+						<input
+							type='text'
+							className='input-group__input'
+							placeholder={
+								selectedChannel === 'email'
+									? 'exemplo@email.com'
+									: selectedChannel === 'whatsapp'
+									? '1199999999'
+									: '@usuario'
+							}
+							value={destino}
+							onChange={(e) => setDestino(e.target.value)}
+						/>
+					</div>
+				</div>
+				<div className='modal__actions'>
+					<button
+						className={
+							isLoading
+								? 'modal-btn modal-btn--primary_loading'
+								: 'modal-btn modal-btn modal-btn--primary'
+						}
+						onClick={handleSend}
+					>
+						{isLoading ? 'Enviando...' : 'Enviar'}
+					</button>
+					<button
+						className='modal-btn modal-btn--secondary'
+						onClick={handleCloseModal}
+					>
+						Cancelar
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+);
+
 const ProposalList = ({ proposals }) => {
 	const [showModal, setShowModal] = useState(false);
 	const [selectedProposalId, setSelectedProposalId] = useState(null);
@@ -65,67 +133,6 @@ const ProposalList = ({ proposals }) => {
 		if (!category) return category;
 		return category.charAt(0).toUpperCase() + category.slice(1);
 	};
-
-	// Componente Modal separado
-	const Modal = () => (
-		<div className='modal'>
-			<div className='modal__overlay' onClick={handleCloseModal}></div>
-			<div className='modal__container'>
-				<div className='modal__content'>
-					<div className='modal__header'>
-						<h3 className='modal__title'>
-							Enviar via {selectedChannel.toUpperCase()}
-						</h3>
-						<button className='modal__close' onClick={handleCloseModal}>
-							✕
-						</button>
-					</div>
-					<div className='modal__body'>
-						<div className='input-group'>
-							<label className='input-group__label'>
-								{selectedChannel === 'email'
-									? 'E-mail de destino'
-									: selectedChannel === 'whatsapp'
-									? 'Número do WhatsApp'
-									: 'Usuário do Discord'}
-							</label>
-							<input
-								type='text'
-								className='input-group__input'
-								placeholder={
-									selectedChannel === 'email'
-										? 'exemplo@email.com'
-										: selectedChannel === 'whatsapp'
-										? '1199999999'
-										: '@usuario'
-								}
-								value={destino}
-								onChange={(e) => setDestino(e.target.value)}
-							/>
-						</div>
-					</div>
-					<div className='modal__actions'>
-						<button
-							className={
-								isLoading
-									? 'modal-btn modal-btn--primary_loading'
-									: 'modal-btn modal-btn modal-btn--primary'
-							}
-							onClick={handleSend}
-						>
-							{isLoading ? 'Enviando...' : 'Enviar'}
-						</button>
-						<button
-							className='modal-btn modal-btn--secondary'
-							onClick={handleCloseModal}
-						>
-							Cancelar
-						</button>
-					</div>
-				</div>
-			</div>
-		</div>
-	);
 
 	return (
 		<>
@@ -365,8 +372,19 @@ const ProposalList = ({ proposals }) => {
 				)}
 			</section>
 
-			{/* Modal renderizado via Portal - FORA da section */}
-			{showModal && createPortal(<Modal />, document.body)}
+			{/* Modal renderizado via Portal */}
+			{showModal &&
+				createPortal(
+					<Modal
+						selectedChannel={selectedChannel}
+						destino={destino}
+						setDestino={setDestino}
+						isLoading={isLoading}
+						handleSend={handleSend}
+						handleCloseModal={handleCloseModal}
+					/>,
+					document.body
+				)}
 		</>
 	);
 };
