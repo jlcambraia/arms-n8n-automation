@@ -622,7 +622,6 @@ body {
 	}
 
 	.proposal-card__title-section {
-		flex-direction: column;
 		gap: 1rem;
 	}
 
@@ -633,10 +632,6 @@ body {
 
 	.info-grid {
 		grid-template-columns: 1fr;
-	}
-
-	.proposal-card__actions {
-		flex-direction: column;
 	}
 
 	.action-btn {
@@ -672,6 +667,15 @@ body {
 
 	.app__subtitle {
 		font-size: 1rem;
+	}
+
+	.proposal-card__title-section {
+		flex-direction: column;
+		height: 100%;
+	}
+
+	.info-item {
+		flex-direction: column;
 	}
 
 	.stat-card__value {
