@@ -106,4 +106,4 @@ O dashboard é totalmente responsivo e se adapta a:
 
 ---
 
-**Desenvolvido com ❤️ para facilitar o gerenciamento de propostas comerciais**
+**Desenvolvido por João Luiz Cambraia com ❤️ para facilitar o gerenciamento de propostas comerciais**
