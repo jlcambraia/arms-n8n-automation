@@ -22,8 +22,6 @@ const App = () => {
 		fetchProposals();
 	}, []);
 
-	console.log('Atualizou');
-
 	return (
 		<div className='app'>
 			<header className='app__header'>
