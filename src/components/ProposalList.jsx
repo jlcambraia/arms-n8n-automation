@@ -184,7 +184,7 @@ const ProposalList = ({ proposals }) => {
 										<div className='proposal-card__content'>
 											<div className='proposal-card__main-info'>
 												<div className='info-grid'>
-													<div className='info-item'>
+													<div className='info-item info-item_fornecedor'>
 														<span className='info-item__icon'>🧰</span>
 														<div className='info-item__content'>
 															<span className='info-item__label'>
@@ -291,11 +291,18 @@ const ProposalList = ({ proposals }) => {
 												</div>
 											</div>
 
-											{pontos_fortes && (
+											{pontos_fortes ? (
 												<div className='proposal-card__strengths'>
 													<h4 className='strengths__title'>✨ Pontos Fortes</h4>
 													<p className='strengths__content strengths__content_fix-height'>
 														{pontos_fortes}
+													</p>
+												</div>
+											) : (
+												<div className='proposal-card__strengths'>
+													<h4 className='strengths__title'>✨ Pontos Fortes</h4>
+													<p className='strengths__content strengths__content_fix-height'>
+														'Sem pontos fortes relevantes'
 													</p>
 												</div>
 											)}
